@@ -2,6 +2,10 @@
 import pika
 import time
 from ConfigParser import SafeConfigParser
+from tinydb import TinyDB, where
+import tweepy
+
+db = TinyDB('data/database.json')
 
 parser = SafeConfigParser()
 parser.read('credentials.cfg')

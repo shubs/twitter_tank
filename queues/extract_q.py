@@ -1,24 +1,10 @@
 #!/usr/bin/env python
 import pika
 import sys
-import tweepy
-from ConfigParser import SafeConfigParser
+import imp
+twi = imp.load_source('twi', 'libs/twitter.py')
 
-parser = SafeConfigParser()
-parser.read('credentials.cfg')
-
-consumer_key = parser.get('Twitter3', 'consumer_key')
-consumer_secret = parser.get('Twitter3', 'consumer_secret')
-access_token = parser.get('Twitter3', 'access_token')
-access_token_secret = parser.get('Twitter3', 'access_token_secret')
-
-print consumer_key
-
-auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_token_secret)
-
-api = tweepy.API(auth)
-
+api = twi.begin(1)
 
 user = api.get_user('gsempe')
 
