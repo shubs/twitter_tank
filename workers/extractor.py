@@ -2,13 +2,14 @@
 import pika
 import time
 
-
+## faire en sorte que les workers queues
 import json
 from datetime import datetime
 
 import imp
 twi = imp.load_source('twi', 'libs/twitter.py')
 mongo = imp.load_source('mongo', 'libs/mongo.py')
+rb = imp.load_source('rb', 'libs/rabbitmq.py')
 
 api = twi.begin(4)
 db = mongo.begin()
@@ -34,7 +35,7 @@ def callback(ch, method, properties, body):
 			'score' : 0 #if -1 means never unfollow
 		}
 		result = mongo.add(db, e, payload)
-		print result
+		rb.enqueue('examine_q', str(result.inserted_id))
 
 	print " [x] Done"
 	ch.basic_ack(delivery_tag = method.delivery_tag)
