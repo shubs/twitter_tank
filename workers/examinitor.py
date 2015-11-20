@@ -1,26 +1,16 @@
 #!/usr/bin/env python
 import pika
 import time
-from ConfigParser import SafeConfigParser
-from tinydb import TinyDB, where
-import tweepy
+import json
+from datetime import datetime
 
-db = TinyDB('data/database.json')
+import imp
+twi = imp.load_source('twi', 'libs/twitter.py')
+mongo = imp.load_source('mongo', 'libs/mongo.py')
 
-parser = SafeConfigParser()
-parser.read('credentials.cfg')
+api = twi.begin(1)
+db = mongo.begin()
 
-consumer_key = parser.get('Twitter3', 'consumer_key')
-consumer_secret = parser.get('Twitter3', 'consumer_secret')
-access_token = parser.get('Twitter3', 'access_token')
-access_token_secret = parser.get('Twitter3', 'access_token_secret')
-
-print consumer_key
-
-auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_token_secret)
-
-api = tweepy.API(auth)
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(
         host='localhost'))
@@ -30,14 +20,22 @@ channel.queue_declare(queue='examine_q', durable=True)
 print ' [*] Waiting for messages. To exit press CTRL+C'
 
 def callback(ch, method, properties, body):
-    print " [x] Received %r" % (body,)
-    time.sleep(1)
-    #lookup information
-    #add to db..
-    #add to DB
+	print " [x] Received %r" % (body,)
+	r = api.request('users/lookup', {'user_id':f})
+	print r.get_rest_quota()
+	for e in r.json():
+		payload = {
+			'added on' : datetime.now(),
+			'mute' : False,
+			'following' : False,
+			'step' : 0, 
+			'score' : 0 #if -1 means never unfollow
+		}
+		result = mongo.add(db, e, payload)
+		print result
 
-    print " [x] Done"
-    ch.basic_ack(delivery_tag = method.delivery_tag)
+	print " [x] Done"
+	ch.basic_ack(delivery_tag = method.delivery_tag)
 
 channel.basic_qos(prefetch_count=1)
 channel.basic_consume(callback,

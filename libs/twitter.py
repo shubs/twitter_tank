@@ -19,9 +19,12 @@ def begin(num):
 	api = TwitterAPI(consumer_key, consumer_secret, access_token, access_token_secret)
 	return api
 
-def get_followers(api, name):
+# def id_to_info(api, id):
 
-	r = api.request('followers/ids', {'screen_name':'gsempe'})
+
+def get_followers_ids(api, name):
+
+	r = api.request('followers/ids', {'screen_name':name})
 	cursor = r.json()['next_cursor']
 	followers = r.json()['ids']
 
@@ -30,5 +33,12 @@ def get_followers(api, name):
 		r = api.request('followers/ids', {'screen_name':'gsempe', 'cursor':cursor})
 		cursor = r.json()['next_cursor']
 		followers = followers + r.json()['ids']
+
+	return followers
+
+def get_followings_ids(api, name):
+
+	r = api.request('friends/ids', {'screen_name':name})
+	followers = r.json()['ids']
 
 	return followers
